@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% if users %}
+        {% for user in users %}
+            {% include "_user.html" %}
+        {% endfor %}
+    {% else %}
+        <p>No users found.</p>
+    {% endif %}
+{% endblock %}
