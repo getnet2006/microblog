@@ -2,10 +2,28 @@
 
 {% block content %}
     <h1>Hello, {{ current_user.username }}!</h1>
+    {% if form %}
+        <form action="" method="post" novalidate>
+            {{ form.hidden_tag() }}
+            <p>
+                {{ form.post.label }} <br>
+                {{ form.post(size=15) }} <br>
+                {% for error in form.post.errors %}
+                    <span style="color:red">{{ error }}</span>
+                {% endfor %}
+            </p>
+            <p>
+                {{ form.submit() }}
+            </p>
+        </form>
+    {% endif %}
     {% for post in posts %}
-        <div>
-            <h2>{{post.author.username}} says:</h2>
-            <p>{{post.body}}</p>
-        </div>
+        {% include "_post.html" %}
     {% endfor %}
+    {% if prev_url %}
+        <a href="{{ prev_url }}">&laquo; Older</a>
+    {% endif %}
+    {% if next_url %}
+        <a href="{{ next_url }}">Newer &raquo;</a>
+    {% endif %}
 {% endblock %}
