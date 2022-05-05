@@ -61,7 +61,7 @@ def register():
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
     page = request.args.get('page', 1, type=int)
-    posts = Post.query.filter_by(user_id=current_user.id).order_by(Post.timestamp.desc()).paginate(page, app.config['POSTS_PER_PAGE'], False)
+    posts = Post.query.filter_by(user_id=user.id).order_by(Post.timestamp.desc()).paginate(page, app.config['POSTS_PER_PAGE'], False)
     next_url = url_for('user', username=user.username, page=posts.next_num) if posts.has_next else None
     prev_url = url_for('user', username=user.username, page=posts.prev_num) if posts.has_prev else None
     form = EmptyForm()
@@ -128,16 +128,22 @@ def unfollow(username):
 @app.route('/<username>/list_followers')
 @login_required
 def list_followers(username):
-    users = User.query.filter_by(username=username).first().followers.all()
+    users = User.query.filter_by(username=username).first().followers.paginate(page, app.config['POSTS_PER_PAGE'], False)
+    page = request.args.get('page', 1, type=int)
+    next_url = url_for('/<username>/list_following', username=user.username, page=users.next_num) if users.has_next else None
+    prev_url = url_for('/<username>/list_following', username=user.username, page=users.prev_num) if users.has_prev else None
     form = EmptyForm()
-    return render_template('list_users.html', title='Followers', users=users, form=form)
+    return render_template('list_users.html', title='Followers',user= current_user, users=users.items, form=form, next_url=next_url, prev_url=prev_url)
 
 @app.route('/<username>/list_following')
 @login_required
 def list_following(username):
-    users = User.query.filter_by(username=username).first().followed.all()
+    page = request.args.get('page', 1, type=int)
+    users = User.query.filter_by(username=username).first().followed.paginate(page, app.config['POSTS_PER_PAGE'], False)
+    next_url = url_for('/<username>/list_following', username=user.username, page=users.next_num) if users.has_next else None
+    prev_url = url_for('/<username>/list_following', username=user.username, page=users.prev_num) if users.has_prev else None
     form = EmptyForm()
-    return render_template('list_users.html', title='Following', users=users, form=form)
+    return render_template('list_users.html', title='Following',user= current_user, users=users.items, form=form, next_url=next_url, prev_url=prev_url)
 
 @app.route('/explore')
 @login_required
