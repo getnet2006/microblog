@@ -30,6 +30,17 @@
                     {% if current_user.is_anonymous %}
                     <li><a href="{{ url_for('auth.login') }}">Login</a></li>
                     {% else %}
+                    <li>
+                        <a href="{{url_for('main.messages') }}">
+                            Messages
+                            {% set new_message = current_user.new_messages() %}
+                            {% if new_message %}
+                                <span class="badge" id="message_count">
+                                    {{ new_message }}
+                                </span>
+                            {% endif %}
+                        </a>
+                    </li>
                     <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
                     {% endif %}
                 </ul>
@@ -98,5 +109,10 @@
                 }
             );
         });
+        
+        function set_message_count(n){
+            $('#message_count').text(n);
+            $('#message_count').css('visibility',n ? 'visible' : 'hidden');
+        }
     </script>
 {% endblock %}

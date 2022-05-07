@@ -13,7 +13,7 @@
                         </a>
                     </span>
             {% endset %}
-            {{ user_link + 's said' + moment(post.timestamp).fromNow() }}
+            {{ user_link + 'said ' + moment(post.timestamp).fromNow() }}
             <br>
             <span id="post{{ post.id }}">{{ post.body }}</span>
         </td>
