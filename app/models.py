@@ -107,6 +107,9 @@ class User(PaginatedAPIMixin,UserMixin, db.Model):
         own = Post.query.filter_by(user_id=self.id)
         return followed.union(own).order_by(Post.timestamp.desc())
     
+    def only_followed_posts(self):
+        return Post.query.join(followers, (followers.c.followed_id == Post.user_id)).filter(followers.c.follower_id == self.id)
+
     def get_reset_password_token(self, expires_in=600):
         return jwt.encode(
             {'reset_password': self.id, 'exp': time() + expires_in},
@@ -147,12 +150,12 @@ class User(PaginatedAPIMixin,UserMixin, db.Model):
         if new_user and 'password' in data:
             self.set_password(data['password'])
 
-    def get_token(self, expires_in=3600):
+    def get_token(self, expires_in=30):
         now = datetime.utcnow()
         if self.token and self.token_expiration > now + timedelta(seconds=60):
             return self.token
         self.token = base64.b64encode(os.urandom(24)).decode('utf-8')
-        self.token_expiration = now + timedelta(seconds=expires_in)
+        self.token_expiration = now + timedelta(days=expires_in)
         db.session.add(self)
         return self.token
     
@@ -166,7 +169,7 @@ class User(PaginatedAPIMixin,UserMixin, db.Model):
             return None
         return user
     
-class Post(db.Model):
+class Post(db.Model, PaginatedAPIMixin):
     id = db.Column(db.Integer, primary_key=True)
     body = db.Column(db.String(140))
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
@@ -174,6 +177,19 @@ class Post(db.Model):
 
     def __repr__(self):
         return '<Post {}>'.format(self.body)
+
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'body': self.body,
+            'timestamp': self.timestamp.isoformat() + 'Z',
+            'user_id': self.user_id,
+            '_links': {
+                'self': url_for('api.get_post', id=self.id)
+            }
+        }
+        return data
+    
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -184,7 +200,6 @@ class Notification(db.Model):
 
     def get_data(self):
         return json.loads(str(self.payload_json))
-
 
 
 @login.user_loader
