@@ -4,8 +4,8 @@ from app.api import bp
 from app.api.errors import bad_request
 from app.models import Post, User
 from app.api.tokens import token_auth
-from app import db
-
+from app import db, micorblog_api
+from flask_restful import Resource, request, abort
 
 @bp.get('/posts')
 @token_auth.login_required
